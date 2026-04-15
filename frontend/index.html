@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Cloud-Integrated IoT-Based Driver Drowsiness Detection System — Secure Login">
+    <title>DrowsiGuard — Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <div class="auth-page" id="authPage">
+        <!-- Left Branding Panel -->
+        <div class="auth-left">
+            <div class="auth-brand">
+                <div class="logo-icon">🛡️</div>
+                <h1 class="text-gradient">DrowsiGuard</h1>
+                <p>Cloud-Integrated IoT-Based Driver Drowsiness Detection System powered by Deep Learning</p>
+
+                <div class="auth-features">
+                    <div class="auth-feature">
+                        <span class="auth-feature-icon">🧠</span>
+                        <span>Real-time AI-powered drowsiness detection</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="auth-feature-icon">☁️</span>
+                        <span>Cloud-connected event logging & analytics</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="auth-feature-icon">📡</span>
+                        <span>IoT device integration with Raspberry Pi</span>
+                    </div>
+                    <div class="auth-feature">
+                        <span class="auth-feature-icon">🔒</span>
+                        <span>Secure authentication & encrypted data</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Auth Panel -->
+        <div class="auth-right">
+            <div class="auth-card">
+                <!-- Tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Sign In</button>
+                    <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Sign Up</button>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <h2>Welcome Back</h2>
+                    <p class="subtitle">Sign in to your monitoring dashboard</p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">Email Address</label>
+                        <div class="form-input-icon">
+                            <span class="icon">📧</span>
+                            <input type="email" class="form-input" id="loginEmail"
+                                   placeholder="admin@drowsiguard.com" required autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Password</label>
+                        <div class="form-input-icon">
+                            <span class="icon">🔑</span>
+                            <input type="password" class="form-input" id="loginPassword"
+                                   placeholder="Enter your password" required autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+                        Sign In
+                    </button>
+
+                    <p class="text-center mt-2 text-muted" style="font-size: 0.82rem;">
+                        Demo: admin@drowsiguard.com / admin123
+                    </p>
+                </form>
+
+                <!-- Register Form -->
+                <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+                    <h2>Create Account</h2>
+                    <p class="subtitle">Register for system access</p>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regUsername">Username</label>
+                        <div class="form-input-icon">
+                            <span class="icon">👤</span>
+                            <input type="text" class="form-input" id="regUsername"
+                                   placeholder="john_driver" required minlength="3">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regEmail">Email Address</label>
+                        <div class="form-input-icon">
+                            <span class="icon">📧</span>
+                            <input type="email" class="form-input" id="regEmail"
+                                   placeholder="john@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regPassword">Password</label>
+                        <div class="form-input-icon">
+                            <span class="icon">🔑</span>
+                            <input type="password" class="form-input" id="regPassword"
+                                   placeholder="Min 6 characters" required minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regRole">Account Type</label>
+                        <select class="form-input" id="regRole">
+                            <option value="user">Driver / User</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="registerBtn">
+                        Create Account
+                    </button>
+                </form>
+
+                <div id="authMessage" class="mt-2 text-center" style="font-size:0.85rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/auth.js"></script>
+</body>
+</html>

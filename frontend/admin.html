@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DrowsiGuard — Admin Panel for User and System Management">
+    <title>DrowsiGuard — Admin Panel</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🛡️</div>
+                <div class="sidebar-title">DrowsiGuard <small>Admin Panel</small></div>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Admin</div>
+                    <button class="nav-link active" data-page="users" onclick="switchAdminPage('users')">
+                        <span class="nav-icon">👥</span> Users
+                    </button>
+                    <button class="nav-link" data-page="api-keys" onclick="switchAdminPage('api-keys')">
+                        <span class="nav-icon">🔑</span> API Keys
+                    </button>
+                    <button class="nav-link" data-page="system" onclick="switchAdminPage('system')">
+                        <span class="nav-icon">🖥️</span> System Config
+                    </button>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Navigation</div>
+                    <button class="nav-link" onclick="window.location.href='dashboard.html'">
+                        <span class="nav-icon">📊</span> Dashboard
+                    </button>
+                </div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="avatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name">Admin</div>
+                        <div class="user-role">administrator</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()" title="Sign Out">🚪</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="flex items-center gap-2">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                    <h2>⚙️ Admin Panel</h2>
+                </div>
+            </header>
+
+            <!-- Page: Users -->
+            <div class="page-content" id="admin-users">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">👥</div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">🔓</div>
+                        <div class="stat-value" id="activeUsers">0</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">👑</div>
+                        <div class="stat-value" id="adminCount">0</div>
+                        <div class="stat-label">Admins</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>👥 User Management</h3>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Drowsy Alerts</th>
+                                    <th>Yawns</th>
+                                    <th>Total Events</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody">
+                                <tr><td colspan="8" class="text-center text-muted" style="padding:2rem;">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: API Keys -->
+            <div class="page-content hidden" id="admin-api-keys">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🔑 Device API Keys</h3>
+                        <button class="btn btn-primary btn-sm" onclick="generateApiKey()">+ Generate Key</button>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Device Name</th>
+                                    <th>Key (Prefix)</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="apiKeysTableBody">
+                                <tr>
+                                    <td>RPi-CAM-001</td>
+                                    <td><code style="color:var(--accent-primary);">dds_a3f8...c912</code></td>
+                                    <td>2025-01-15</td>
+                                    <td><span class="badge-severity low">Active</span></td>
+                                </tr>
+                                <tr>
+                                    <td>ESP32-CAM-001</td>
+                                    <td><code style="color:var(--accent-primary);">dds_7b2e...f451</code></td>
+                                    <td>2025-01-20</td>
+                                    <td><span class="badge-severity low">Active</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: System Config -->
+            <div class="page-content hidden" id="admin-system">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🖥️ System Configuration</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">EAR Threshold</label>
+                            <input type="number" class="form-input" value="0.22" step="0.01" style="max-width:200px;">
+                            <small class="text-muted">Default: 0.22 — Lower = more sensitive</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">MAR Threshold</label>
+                            <input type="number" class="form-input" value="0.75" step="0.01" style="max-width:200px;">
+                            <small class="text-muted">Default: 0.75 — Lower = more sensitive to yawns</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Consecutive Frames for Alert</label>
+                            <input type="number" class="form-input" value="30" style="max-width:200px;">
+                            <small class="text-muted">Default: 30 — More frames = fewer false alerts</small>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Alert Cooldown (seconds)</label>
+                            <input type="number" class="form-input" value="5" style="max-width:200px;">
+                            <small class="text-muted">Minimum time between consecutive alerts</small>
+                        </div>
+                        <button class="btn btn-primary" onclick="showToast('Configuration saved!','success')">Save Configuration</button>
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <div class="card-header"><h3>🌐 Cloud Connection</h3></div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">MongoDB URI</label>
+                            <input type="password" class="form-input" value="mongodb+srv://****" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ThingSpeak Channel ID</label>
+                            <input type="text" class="form-input" placeholder="Enter channel ID" style="max-width:300px;">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="status-dot online"></span>
+                            <span style="font-size:0.88rem;">Database Connected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

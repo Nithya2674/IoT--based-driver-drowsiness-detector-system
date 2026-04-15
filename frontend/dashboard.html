@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="DrowsiGuard — Real-time Driver Drowsiness Monitoring Dashboard">
+    <title>DrowsiGuard — Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-layout" id="appLayout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🛡️</div>
+                <div class="sidebar-title">
+                    DrowsiGuard
+                    <small>Monitoring System</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <button class="nav-link active" data-page="overview" onclick="switchPage('overview')">
+                        <span class="nav-icon">📊</span> Overview
+                    </button>
+                    <button class="nav-link" data-page="events" onclick="switchPage('events')">
+                        <span class="nav-icon">🔔</span> Events
+                        <span class="badge" id="eventBadge">0</span>
+                    </button>
+                    <button class="nav-link" data-page="analytics" onclick="switchPage('analytics')">
+                        <span class="nav-icon">📈</span> Analytics
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">AI Assistant</div>
+                    <button class="nav-link" data-page="nlp" onclick="switchPage('nlp')">
+                        <span class="nav-icon">🗣️</span> Voice Query
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">System</div>
+                    <button class="nav-link" data-page="devices" onclick="switchPage('devices')">
+                        <span class="nav-icon">📡</span> Devices
+                    </button>
+                    <button class="nav-link" id="adminNavLink" onclick="window.location.href='admin.html'" style="display:none;">
+                        <span class="nav-icon">⚙️</span> Admin Panel
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-user">
+                    <div class="avatar" id="userAvatar">A</div>
+                    <div class="user-info">
+                        <div class="user-name" id="userName">Admin</div>
+                        <div class="user-role" id="userRole">admin</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" onclick="logout()" title="Sign Out">🚪</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="flex items-center gap-2">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                    <h2 id="pageTitle">Overview</h2>
+                </div>
+                <div class="header-actions">
+                    <span class="flex items-center gap-1" style="font-size:0.85rem; color:var(--text-muted);">
+                        <span class="status-dot online" id="systemStatusDot"></span>
+                        <span id="systemStatusText">System Online</span>
+                    </span>
+                    <button class="btn btn-secondary btn-sm" onclick="refreshDashboard()">🔄 Refresh</button>
+                </div>
+            </header>
+
+            <!-- Page: Overview -->
+            <div class="page-content" id="page-overview">
+                <!-- Stats -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">🔔</div>
+                        <div class="stat-value" id="statTotalEvents">0</div>
+                        <div class="stat-label">Total Events Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">😴</div>
+                        <div class="stat-value" id="statDrowsy">0</div>
+                        <div class="stat-label">Drowsiness Alerts</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon amber">🥱</div>
+                        <div class="stat-value" id="statYawns">0</div>
+                        <div class="stat-label">Yawn Detections</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-value" id="statStatus">Active</div>
+                        <div class="stat-label">Driver Status</div>
+                    </div>
+                </div>
+
+                <!-- Live Camera Feed -->
+                <div class="card" style="margin-bottom: 2rem; overflow: hidden;">
+                    <div class="card-header">
+                        <h3 class="flex items-center gap-2">
+                            <span class="status-dot online"></span>
+                            Live Driver Stream
+                        </h3>
+                    </div>
+                    <div class="card-body" style="background: var(--bg-secondary); padding: 0; display: flex; justify-content: center;">
+                        <img id="liveFeedStream" src="http://localhost:5000/api/video_feed" 
+                             alt="Live Camera Feed (Waiting for backend...)" 
+                             style="max-width: 100%; width: 640px; height: auto;"
+                             onerror="this.src=''; this.alt='Camera feed offline or loading...';">
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>📈 Alert Trend (7 Days)</h3>
+                            <select class="form-input" style="width:auto;padding:0.4rem 2rem 0.4rem 0.6rem;font-size:0.8rem;" id="trendPeriod" onchange="updateCharts()">
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>🍩 Event Distribution</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="distributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Events -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🔔 Recent Events</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="switchPage('events')">View All →</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="event-feed" id="recentEventFeed">
+                            <div class="loading-container">
+                                <div class="loading-spinner"></div>
+                                <p class="text-muted">Loading events...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Events -->
+            <div class="page-content hidden" id="page-events">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🔔 All Drowsiness Events</h3>
+                        <div class="flex gap-1">
+                            <select class="form-input" style="width:auto;padding:0.4rem 2rem 0.4rem 0.6rem;font-size:0.8rem;" id="filterType" onchange="loadEvents()">
+                                <option value="">All Types</option>
+                                <option value="drowsy">Drowsy</option>
+                                <option value="yawn">Yawn</option>
+                            </select>
+                            <select class="form-input" style="width:auto;padding:0.4rem 2rem 0.4rem 0.6rem;font-size:0.8rem;" id="filterSeverity" onchange="loadEvents()">
+                                <option value="">All Severity</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding:0;">
+                        <div class="table-responsive" style="overflow-x:auto;">
+                            <table class="data-table" id="eventsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Severity</th>
+                                        <th>EAR</th>
+                                        <th>MAR</th>
+                                        <th>Driver</th>
+                                        <th>Device</th>
+                                        <th>Timestamp</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="eventsTableBody">
+                                    <tr><td colspan="8" class="text-center text-muted" style="padding:2rem;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer flex justify-between items-center">
+                        <span class="text-muted" style="font-size:0.82rem;" id="eventCount">0 events</span>
+                        <div class="flex gap-1">
+                            <button class="btn btn-secondary btn-sm" id="prevPageBtn" onclick="changePage(-1)" disabled>← Prev</button>
+                            <button class="btn btn-secondary btn-sm" id="nextPageBtn" onclick="changePage(1)">Next →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Analytics -->
+            <div class="page-content hidden" id="page-analytics">
+                <div class="charts-grid">
+                    <div class="card">
+                        <div class="card-header"><h3>⏰ Hourly Distribution</h3></div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="hourlyChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3>📊 Severity Breakdown</h3></div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="severityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card mt-2">
+                    <div class="card-header"><h3>📋 Session Statistics</h3></div>
+                    <div class="card-body" id="sessionStats">
+                        <div class="empty-state">
+                            <div class="empty-icon">📊</div>
+                            <h3>Analytics data will appear here</h3>
+                            <p>Start monitoring to generate analytics.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: NLP -->
+            <div class="page-content hidden" id="page-nlp">
+                <div class="nlp-panel">
+                    <h3 style="margin-bottom:0.5rem;">🗣️ AI Voice / Text Query</h3>
+                    <p class="text-muted" style="font-size:0.85rem;margin-bottom:1rem;">Ask questions about driver status, alerts, and system health using natural language.</p>
+
+                    <div class="nlp-input-group">
+                        <input type="text" class="form-input" id="nlpInput"
+                               placeholder="Try: 'Show driver status' or 'How many alerts today?'"
+                               onkeydown="if(event.key==='Enter')submitNlpQuery()">
+                        <button class="btn btn-primary" onclick="submitNlpQuery()" id="nlpSendBtn">Send</button>
+                        <button class="btn btn-secondary" onclick="startVoiceInput()" id="voiceBtn" title="Voice Input">🎙️</button>
+                    </div>
+
+                    <div class="nlp-suggestions">
+                        <span class="nlp-suggestion" onclick="setNlpQuery('Show driver status')">Show driver status</span>
+                        <span class="nlp-suggestion" onclick="setNlpQuery('Last drowsiness alert')">Last drowsiness alert</span>
+                        <span class="nlp-suggestion" onclick="setNlpQuery('How many alerts today?')">How many alerts today?</span>
+                        <span class="nlp-suggestion" onclick="setNlpQuery('Show system summary')">Show system summary</span>
+                        <span class="nlp-suggestion" onclick="setNlpQuery('List yawn events this week')">Yawn events this week</span>
+                        <span class="nlp-suggestion" onclick="setNlpQuery('help')">Help</span>
+                    </div>
+
+                    <div class="nlp-response" id="nlpResponse"></div>
+                </div>
+
+                <!-- Query History -->
+                <div class="card">
+                    <div class="card-header"><h3>📝 Query History</h3></div>
+                    <div class="card-body">
+                        <div class="event-feed" id="queryHistory">
+                            <div class="empty-state">
+                                <div class="empty-icon">🗣️</div>
+                                <h3>No queries yet</h3>
+                                <p>Try asking a question above!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page: Devices -->
+            <div class="page-content hidden" id="page-devices">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">📡</div>
+                        <div class="stat-value" id="deviceCount">1</div>
+                        <div class="stat-label">Connected Devices</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-value" id="activeDevices">1</div>
+                        <div class="stat-label">Active Now</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📡 Registered Devices</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Device ID</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Last Active</th>
+                                    <th>Events</th>
+                                </tr>
+                            </thead>
+                            <tbody id="deviceTableBody">
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-1">
+                                            <span class="status-dot online"></span>
+                                            RPi-CAM-001
+                                        </div>
+                                    </td>
+                                    <td>Raspberry Pi 4 + Camera</td>
+                                    <td><span class="badge-severity low">Online</span></td>
+                                    <td>Just now</td>
+                                    <td>—</td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="flex items-center gap-1">
+                                            <span class="status-dot offline"></span>
+                                            ESP32-CAM-001
+                                        </div>
+                                    </td>
+                                    <td>ESP32-CAM Module</td>
+                                    <td><span class="badge-severity medium">Offline</span></td>
+                                    <td>2 hours ago</td>
+                                    <td>—</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/nlp.js"></script>
+</body>
+</html>
